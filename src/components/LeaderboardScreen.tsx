@@ -29,7 +29,7 @@ export const LeaderboardScreen: React.FC<LeaderboardScreenProps> = ({ onBackToDu
           
           <div className="text-center">
             <h1 className="text-2xl font-bold bg-gradient-primary bg-clip-text text-transparent">
-              GOAT Rankings
+              Ranking UFTC
             </h1>
             <p className="text-sm text-muted-foreground">
               {totalVotes} total votes • Live Elo ratings

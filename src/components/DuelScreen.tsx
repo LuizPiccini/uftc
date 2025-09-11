@@ -102,15 +102,15 @@ export const DuelScreen: React.FC<DuelScreenProps> = ({ onViewLeaderboard }) => 
         <div className="max-w-4xl mx-auto flex justify-between items-center">
           <div>
             <h1 className="text-2xl font-bold bg-gradient-primary bg-clip-text text-transparent">
-              GOAT Arena
+              UFTC Segunda Edição
             </h1>
-            <p className="text-sm text-muted-foreground">Who's the greatest footballer?</p>
+            <p className="text-sm text-muted-foreground">Quem vai ser o campeão?</p>
           </div>
           
           <div className="flex items-center gap-4">
             <div className="text-center">
               <div className="text-lg font-bold text-electric-blue">{sessionVotes}</div>
-              <div className="text-xs text-muted-foreground">Votes</div>
+              <div className="text-xs text-muted-foreground">Votos</div>
             </div>
             
             <Button 
@@ -130,8 +130,8 @@ export const DuelScreen: React.FC<DuelScreenProps> = ({ onViewLeaderboard }) => 
         <div className="w-full max-w-6xl">
           {/* VS Header */}
           <div className="text-center mb-8">
-            <h2 className="text-4xl font-bold mb-2">Who's Better?</h2>
-            <p className="text-muted-foreground">Choose your pick • Use ← → keys or tap</p>
+            <h2 className="text-4xl font-bold mb-2">Quem ganharia em uma luta?</h2>
+            <p className="text-muted-foreground">Regras: sem armas, arena de UFC (Octógono) com teto de 3m de altura, até a morte, incapacitação ou desistência</p>
           </div>
 
           {/* Duel Cards */}
