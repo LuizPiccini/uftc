@@ -47,6 +47,12 @@ export default {
           DEFAULT: "hsl(var(--card))",
           foreground: "hsl(var(--card-foreground))",
         },
+        // GOAT Arena colors
+        "electric-blue": "hsl(var(--electric-blue))",
+        purple: "hsl(var(--purple))",
+        orange: "hsl(var(--orange))",
+        green: "hsl(var(--green))",
+        gold: "hsl(var(--gold))",
         sidebar: {
           DEFAULT: "hsl(var(--sidebar-background))",
           foreground: "hsl(var(--sidebar-foreground))",
@@ -80,10 +86,56 @@ export default {
             height: "0",
           },
         },
+        // GOAT Arena animations
+        "vote-winner": {
+          "0%": {
+            transform: "scale(1)",
+            boxShadow: "0 0 0 0 hsl(var(--green) / 0.7)",
+          },
+          "70%": {
+            transform: "scale(1.05)",
+            boxShadow: "0 0 0 10px hsl(var(--green) / 0)",
+          },
+          "100%": {
+            transform: "scale(1)",
+            boxShadow: "0 0 0 0 hsl(var(--green) / 0)",
+          },
+        },
+        "slide-in": {
+          "0%": {
+            transform: "translateX(100%) scale(0.8)",
+            opacity: "0",
+          },
+          "100%": {
+            transform: "translateX(0) scale(1)",
+            opacity: "1",
+          },
+        },
+        "float": {
+          "0%, 100%": {
+            transform: "translateY(0px)",
+          },
+          "50%": {
+            transform: "translateY(-10px)",
+          },
+        },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
         "accordion-up": "accordion-up 0.2s ease-out",
+        "vote-winner": "vote-winner 0.6s ease-out",
+        "slide-in": "slide-in 0.5s ease-out",
+        "float": "float 6s ease-in-out infinite",
+      },
+      backgroundImage: {
+        "gradient-primary": "var(--gradient-primary)",
+        "gradient-gold": "var(--gradient-gold)",
+        "gradient-success": "var(--gradient-success)",
+      },
+      boxShadow: {
+        "glow": "var(--shadow-glow)",
+        "card": "var(--shadow-card)",
+        "winner": "var(--shadow-winner)",
       },
     },
   },

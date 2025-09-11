@@ -15,6 +15,10 @@ const buttonVariants = cva(
         secondary: "bg-secondary text-secondary-foreground hover:bg-secondary/80",
         ghost: "hover:bg-accent hover:text-accent-foreground",
         link: "text-primary underline-offset-4 hover:underline",
+        // GOAT Arena variants
+        vote: "bg-gradient-primary text-white hover:scale-105 hover:shadow-glow transition-all duration-300 border-none shadow-card",
+        leaderboard: "bg-background/10 text-foreground hover:bg-background/20 border border-border/50 backdrop-blur-sm",
+        winner: "bg-gradient-success text-white hover:scale-105 animate-vote-winner shadow-winner",
       },
       size: {
         default: "h-10 px-4 py-2",
