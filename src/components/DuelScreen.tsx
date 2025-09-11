@@ -15,7 +15,9 @@ export const DuelScreen: React.FC<DuelScreenProps> = ({ onViewLeaderboard }) => 
     generatePair, 
     castVote, 
     sessionVotes,
-    hasVotedRecently 
+    hasVotedRecently,
+    initializePlayers,
+    isLoading
   } = useGameStore();
   
   const [isVoting, setIsVoting] = useState(false);
@@ -23,14 +25,18 @@ export const DuelScreen: React.FC<DuelScreenProps> = ({ onViewLeaderboard }) => 
 
   // Generate initial pair
   useEffect(() => {
-    if (!currentPair) {
-      try {
-        generatePair();
-      } catch (error) {
-        console.error('Failed to generate pair:', error);
+    const init = async () => {
+      await initializePlayers();
+      if (!currentPair) {
+        try {
+          await generatePair();
+        } catch (error) {
+          console.error('Failed to generate pair:', error);
+        }
       }
-    }
-  }, [currentPair, generatePair]);
+    };
+    init();
+  }, []);
 
   // Handle keyboard shortcuts
   useEffect(() => {
@@ -49,7 +55,7 @@ export const DuelScreen: React.FC<DuelScreenProps> = ({ onViewLeaderboard }) => 
   }, [currentPair, isVoting]);
 
   const handleVote = useCallback(async (winnerId: string, loserId: string) => {
-    if (isVoting || !currentPair) return;
+    if (isVoting || !currentPair || isLoading) return;
     
     // Check for duplicate vote
     if (hasVotedRecently(currentPair.pairId)) {
@@ -60,7 +66,7 @@ export const DuelScreen: React.FC<DuelScreenProps> = ({ onViewLeaderboard }) => 
     setIsVoting(true);
     
     // Cast vote
-    const result = castVote(winnerId, loserId);
+    const result = await castVote(winnerId, loserId);
     
     if (result) {
       setLastVoteResult({
@@ -73,8 +79,8 @@ export const DuelScreen: React.FC<DuelScreenProps> = ({ onViewLeaderboard }) => 
       });
 
       // Wait for animation, then generate new pair
-      setTimeout(() => {
-        generatePair();
+      setTimeout(async () => {
+        await generatePair();
         setIsVoting(false);
         setLastVoteResult(null);
       }, 1500);
@@ -82,14 +88,16 @@ export const DuelScreen: React.FC<DuelScreenProps> = ({ onViewLeaderboard }) => 
       setIsVoting(false);
       toast.error('Vote failed. Please try again.');
     }
-  }, [currentPair, isVoting, castVote, generatePair, hasVotedRecently]);
+  }, [currentPair, isVoting, isLoading, castVote, generatePair, hasVotedRecently]);
 
-  if (!currentPair) {
+  if (!currentPair || isLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center">
-          <div className="animate-spin text-4xl mb-4">⚽</div>
-          <p className="text-muted-foreground">Loading matchup...</p>
+          <div className="animate-spin text-4xl mb-4">🥊</div>
+          <p className="text-muted-foreground">
+            {isLoading ? "Processing vote..." : "Loading matchup..."}
+          </p>
         </div>
       </div>
     );

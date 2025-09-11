@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { useGameStore } from '@/stores/gameStore';
 import { ArrowLeft, Trophy, TrendingUp } from 'lucide-react';
@@ -10,7 +10,16 @@ interface LeaderboardScreenProps {
 }
 
 export const LeaderboardScreen: React.FC<LeaderboardScreenProps> = ({ onBackToDuel }) => {
-  const { getLeaderboard, totalVotes } = useGameStore();
+  const { getLeaderboard, totalVotes, loadPlayersFromDB, loadVotesFromDB } = useGameStore();
+
+  // Load fresh data when component mounts
+  useEffect(() => {
+    const loadData = async () => {
+      await Promise.all([loadPlayersFromDB(), loadVotesFromDB()]);
+    };
+    loadData();
+  }, [loadPlayersFromDB, loadVotesFromDB]);
+
   const players = getLeaderboard();
 
   return (

@@ -14,7 +14,84 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      players: {
+        Row: {
+          created_at: string
+          emoji: string
+          exposure_count: number
+          id: string
+          loss_count: number
+          name: string
+          rating: number
+          updated_at: string
+          win_count: number
+        }
+        Insert: {
+          created_at?: string
+          emoji: string
+          exposure_count?: number
+          id?: string
+          loss_count?: number
+          name: string
+          rating?: number
+          updated_at?: string
+          win_count?: number
+        }
+        Update: {
+          created_at?: string
+          emoji?: string
+          exposure_count?: number
+          id?: string
+          loss_count?: number
+          name?: string
+          rating?: number
+          updated_at?: string
+          win_count?: number
+        }
+        Relationships: []
+      }
+      votes: {
+        Row: {
+          created_at: string
+          id: string
+          loser_id: string
+          pair_id: string
+          timestamp: number
+          winner_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          loser_id: string
+          pair_id: string
+          timestamp: number
+          winner_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          loser_id?: string
+          pair_id?: string
+          timestamp?: number
+          winner_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "votes_loser_id_fkey"
+            columns: ["loser_id"]
+            isOneToOne: false
+            referencedRelation: "players"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "votes_winner_id_fkey"
+            columns: ["winner_id"]
+            isOneToOne: false
+            referencedRelation: "players"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
