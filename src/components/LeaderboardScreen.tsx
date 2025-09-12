@@ -1,5 +1,6 @@
 import React, { useEffect } from 'react';
 import { Button } from '@/components/ui/button';
+import { PlayerAvatar } from '@/components/PlayerAvatar';
 import { useGameStore } from '@/stores/gameStore';
 import { ArrowLeft, Trophy, TrendingUp } from 'lucide-react';
 import { getRatingColor, getRankEmoji } from '@/utils/elo';
@@ -66,7 +67,14 @@ export const LeaderboardScreen: React.FC<LeaderboardScreenProps> = ({ onBackToDu
                 )}
                 style={{ order: index === 0 ? 2 : index === 1 ? 1 : 3 }}
               >
-                <div className="text-4xl mb-2">{player.emoji}</div>
+                <div className="mb-2">
+                  <PlayerAvatar
+                    name={player.name}
+                    emoji={player.emoji}
+                    profileImageUrl={player.profileImageUrl}
+                    size="lg"
+                  />
+                </div>
                 <div className="text-2xl mb-1">{getRankEmoji(index + 1)}</div>
                 <h3 className="font-bold text-sm mb-2">{player.name}</h3>
                 <div className={cn("text-xl font-bold", getRatingColor(player.rating))}>
@@ -101,7 +109,12 @@ export const LeaderboardScreen: React.FC<LeaderboardScreenProps> = ({ onBackToDu
                     {getRankEmoji(index + 1)}
                   </div>
                   
-                  <div className="text-2xl">{player.emoji}</div>
+                  <PlayerAvatar
+                    name={player.name}
+                    emoji={player.emoji}
+                    profileImageUrl={player.profileImageUrl}
+                    size="md"
+                  />
                   
                   <div>
                     <h3 className="font-semibold">{player.name}</h3>

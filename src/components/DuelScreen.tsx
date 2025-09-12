@@ -142,36 +142,31 @@ export const DuelScreen: React.FC<DuelScreenProps> = ({ onViewLeaderboard }) => 
             <p className="text-muted-foreground">Regras: sem armas, arena de UFC (Octógono) com teto de 3m de altura, até a morte, incapacitação ou desistência</p>
           </div>
 
-          {/* Duel Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-16 items-center">
-            <VoteCard
-              player={currentPair.playerA}
-              position="left"
-              onVote={() => handleVote(currentPair.playerA.id, currentPair.playerB.id)}
-              isWinner={lastVoteResult?.winnerId === currentPair.playerA.id}
-              disabled={isVoting}
-            />
-
+          {/* Duel Cards - Mobile First Layout */}
+          <div className="relative max-w-4xl mx-auto">
+            <div className="grid grid-cols-2 gap-3 sm:gap-6 md:gap-8 items-center">
+              <VoteCard
+                player={currentPair.playerA}
+                position="left"
+                onVote={() => handleVote(currentPair.playerA.id, currentPair.playerB.id)}
+                isWinner={lastVoteResult?.winnerId === currentPair.playerA.id}
+                disabled={isVoting}
+              />
+              
+              <VoteCard
+                player={currentPair.playerB}
+                position="right"
+                onVote={() => handleVote(currentPair.playerB.id, currentPair.playerA.id)}
+                isWinner={lastVoteResult?.winnerId === currentPair.playerB.id}
+                disabled={isVoting}
+              />
+            </div>
+            
             {/* VS Divider */}
-            <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 hidden md:block">
-              <div className="bg-gradient-primary text-white w-16 h-16 rounded-full flex items-center justify-center font-bold text-xl shadow-glow">
+            <div className="absolute left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2 z-10">
+              <div className="bg-gradient-to-r from-electric-blue to-purple text-white px-3 sm:px-4 md:px-6 py-1.5 sm:py-2 md:py-3 rounded-full font-bold text-sm sm:text-lg md:text-xl shadow-glow">
                 VS
               </div>
-            </div>
-
-            <VoteCard
-              player={currentPair.playerB}
-              position="right"
-              onVote={() => handleVote(currentPair.playerB.id, currentPair.playerA.id)}
-              isWinner={lastVoteResult?.winnerId === currentPair.playerB.id}
-              disabled={isVoting}
-            />
-          </div>
-
-          {/* Mobile VS */}
-          <div className="flex justify-center my-8 md:hidden">
-            <div className="bg-gradient-primary text-white w-12 h-12 rounded-full flex items-center justify-center font-bold shadow-glow">
-              VS
             </div>
           </div>
         </div>

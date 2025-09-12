@@ -22,6 +22,7 @@ export type Database = {
           id: string
           loss_count: number
           name: string
+          profile_image_url: string | null
           rating: number
           updated_at: string
           win_count: number
@@ -33,6 +34,7 @@ export type Database = {
           id?: string
           loss_count?: number
           name: string
+          profile_image_url?: string | null
           rating?: number
           updated_at?: string
           win_count?: number
@@ -44,6 +46,7 @@ export type Database = {
           id?: string
           loss_count?: number
           name?: string
+          profile_image_url?: string | null
           rating?: number
           updated_at?: string
           win_count?: number
