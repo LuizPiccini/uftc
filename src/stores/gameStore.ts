@@ -143,6 +143,11 @@ const useGameStore = create<GameState>()((set, get) => ({
         try {
           set({ isLoading: true });
 
+          // Get current rankings before update
+          const currentLeaderboard = get().getLeaderboard();
+          const winnerOldRank = currentLeaderboard.findIndex(p => p.id === winnerId) + 1;
+          const loserOldRank = currentLeaderboard.findIndex(p => p.id === loserId) + 1;
+
           // Calculate Elo update
           const eloUpdate = calculateElo(winner, loser);
           
@@ -222,7 +227,18 @@ const useGameStore = create<GameState>()((set, get) => ({
             isLoading: false,
           });
 
-          return eloUpdate;
+          // Get new rankings after update
+          const newLeaderboard = get().getLeaderboard();
+          const winnerNewRank = newLeaderboard.findIndex(p => p.id === winnerId) + 1;
+          const loserNewRank = newLeaderboard.findIndex(p => p.id === loserId) + 1;
+
+          return {
+            ...eloUpdate,
+            winnerOldRank,
+            winnerNewRank,
+            loserOldRank,
+            loserNewRank,
+          };
         } catch (error) {
           console.error('Error casting vote:', error);
           set({ isLoading: false });

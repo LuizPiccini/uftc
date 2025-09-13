@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { VoteCard } from './VoteCard';
+import { RankingDisplay } from './RankingDisplay';
 import { Button } from '@/components/ui/button';
 import { useGameStore } from '@/stores/gameStore';
 import { Trophy, BarChart3 } from 'lucide-react';
@@ -21,7 +22,7 @@ export const DuelScreen: React.FC<DuelScreenProps> = ({ onViewLeaderboard }) => 
   } = useGameStore();
   
   const [isVoting, setIsVoting] = useState(false);
-  const [lastVoteResult, setLastVoteResult] = useState<{winnerId: string, ratingChange: number} | null>(null);
+  const [lastVoteResult, setLastVoteResult] = useState<{winnerId: string, winnerNewRank?: number, winnerOldRank?: number, loserNewRank?: number, loserOldRank?: number} | null>(null);
 
   // Generate initial pair
   useEffect(() => {
@@ -71,12 +72,25 @@ export const DuelScreen: React.FC<DuelScreenProps> = ({ onViewLeaderboard }) => 
     if (result) {
       setLastVoteResult({
         winnerId,
-        ratingChange: result.winnerRatingChange
+        winnerNewRank: result.winnerNewRank,
+        winnerOldRank: result.winnerOldRank,
+        loserNewRank: result.loserNewRank,
+        loserOldRank: result.loserOldRank,
       });
       
-      toast.success(`+${result.winnerRatingChange} rating!`, {
-        duration: 2000,
-      });
+      const rankChange = result.winnerOldRank && result.winnerNewRank 
+        ? result.winnerOldRank - result.winnerNewRank 
+        : 0;
+      
+      if (rankChange > 0) {
+        toast.success(`Moved up ${rankChange} position${rankChange > 1 ? 's' : ''}!`, {
+          duration: 2000,
+        });
+      } else if (result.winnerNewRank) {
+        toast.success(`Currently #${result.winnerNewRank}!`, {
+          duration: 2000,
+        });
+      }
 
       // Wait for animation, then generate new pair
       setTimeout(async () => {
@@ -144,21 +158,41 @@ export const DuelScreen: React.FC<DuelScreenProps> = ({ onViewLeaderboard }) => 
           {/* Duel Cards - Mobile First Layout */}
           <div className="relative max-w-4xl mx-auto">
             <div className="grid grid-cols-2 gap-3 sm:gap-6 md:gap-8 items-center">
-              <VoteCard
-                player={currentPair.playerA}
-                position="left"
-                onVote={() => handleVote(currentPair.playerA.id, currentPair.playerB.id)}
-                isWinner={lastVoteResult?.winnerId === currentPair.playerA.id}
-                disabled={isVoting}
-              />
+              <div className="space-y-2">
+                <VoteCard
+                  player={currentPair.playerA}
+                  position="left"
+                  onVote={() => handleVote(currentPair.playerA.id, currentPair.playerB.id)}
+                  isWinner={lastVoteResult?.winnerId === currentPair.playerA.id}
+                  disabled={isVoting}
+                />
+                {lastVoteResult && (
+                  <RankingDisplay
+                    player={currentPair.playerA}
+                    oldRank={lastVoteResult.winnerId === currentPair.playerA.id ? lastVoteResult.winnerOldRank : lastVoteResult.loserOldRank}
+                    newRank={lastVoteResult.winnerId === currentPair.playerA.id ? lastVoteResult.winnerNewRank : lastVoteResult.loserNewRank}
+                    isWinner={lastVoteResult.winnerId === currentPair.playerA.id}
+                  />
+                )}
+              </div>
               
-              <VoteCard
-                player={currentPair.playerB}
-                position="right"
-                onVote={() => handleVote(currentPair.playerB.id, currentPair.playerA.id)}
-                isWinner={lastVoteResult?.winnerId === currentPair.playerB.id}
-                disabled={isVoting}
-              />
+              <div className="space-y-2">
+                <VoteCard
+                  player={currentPair.playerB}
+                  position="right"
+                  onVote={() => handleVote(currentPair.playerB.id, currentPair.playerA.id)}
+                  isWinner={lastVoteResult?.winnerId === currentPair.playerB.id}
+                  disabled={isVoting}
+                />
+                {lastVoteResult && (
+                  <RankingDisplay
+                    player={currentPair.playerB}
+                    oldRank={lastVoteResult.winnerId === currentPair.playerB.id ? lastVoteResult.winnerOldRank : lastVoteResult.loserOldRank}
+                    newRank={lastVoteResult.winnerId === currentPair.playerB.id ? lastVoteResult.winnerNewRank : lastVoteResult.loserNewRank}
+                    isWinner={lastVoteResult.winnerId === currentPair.playerB.id}
+                  />
+                )}
+              </div>
             </div>
             
             {/* VS Divider */}

@@ -54,10 +54,7 @@ export const VoteCard: React.FC<VoteCardProps> = ({
         {player.name}
       </h3>
       
-      <div className="text-center space-y-1">
-        <div className="text-xs sm:text-sm text-muted-foreground">
-          Rating: <span className="text-electric-blue font-semibold">{Math.round(player.rating)}</span>
-        </div>
+      <div className="text-center">
         <div className="text-xs text-muted-foreground">
           {player.winCount}W - {player.lossCount}L
         </div>

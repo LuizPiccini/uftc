@@ -36,4 +36,8 @@ export interface EloUpdate {
   loserNewRating: number;
   winnerRatingChange: number;
   loserRatingChange: number;
+  winnerOldRank?: number;
+  winnerNewRank?: number;
+  loserOldRank?: number;
+  loserNewRank?: number;
 }
