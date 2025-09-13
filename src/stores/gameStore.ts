@@ -7,6 +7,7 @@ interface GameState {
   players: Player[];
   votes: Vote[];
   currentPair: VotePair | null;
+  pairQueue: VotePair[]; // Pre-fetched pairs queue
   totalVotes: number;
   sessionVotes: number;
   recentVotes: string[]; // Store recent pair IDs to prevent duplicates
@@ -15,6 +16,8 @@ interface GameState {
   // Actions
   initializePlayers: () => Promise<void>;
   generatePair: () => Promise<VotePair>;
+  generateMultiplePairs: (count: number) => VotePair[];
+  fillPairQueue: () => void;
   castVote: (winnerId: string, loserId: string) => Promise<EloUpdate | null>;
   getLeaderboard: () => Player[];
   hasVotedRecently: (pairId: string) => boolean;
@@ -26,6 +29,7 @@ const useGameStore = create<GameState>()((set, get) => ({
   players: [],
   votes: [],
   currentPair: null,
+  pairQueue: [],
   totalVotes: 0,
   sessionVotes: 0,
   recentVotes: [],
@@ -85,11 +89,67 @@ const useGameStore = create<GameState>()((set, get) => ({
     const state = get();
     if (state.players.length === 0) {
       await get().loadPlayersFromDB();
+      // Pre-fill the queue after loading players
+      setTimeout(() => get().fillPairQueue(), 0);
     }
   },
 
-      generatePair: async () => {
+      generateMultiplePairs: (count: number) => {
         const { players, recentVotes } = get();
+        
+        if (players.length < 2) {
+          return [];
+        }
+
+        const pairs: VotePair[] = [];
+        const usedPairIds = new Set([...recentVotes]);
+        
+        for (let i = 0; i < count; i++) {
+          let playerA: Player, playerB: Player;
+          let attempts = 0;
+          const maxAttempts = 50;
+          let pairId: string;
+          let reversePairId: string;
+
+          do {
+            const shuffled = [...players].sort(() => Math.random() - 0.5);
+            playerA = shuffled[0];
+            playerB = shuffled[1];
+            pairId = `${playerA.id}-${playerB.id}`;
+            reversePairId = `${playerB.id}-${playerA.id}`;
+            attempts++;
+          } while (
+            attempts < maxAttempts && 
+            (playerA.id === playerB.id || 
+             usedPairIds.has(pairId) ||
+             usedPairIds.has(reversePairId))
+          );
+
+          if (attempts < maxAttempts) {
+            const fullPairId = `${pairId}-${Date.now()}-${i}`;
+            const pair: VotePair = { pairId: fullPairId, playerA, playerB };
+            pairs.push(pair);
+            usedPairIds.add(pairId);
+            usedPairIds.add(`${playerB.id}-${playerA.id}`);
+          }
+        }
+        
+        return pairs;
+      },
+
+      fillPairQueue: () => {
+        const { pairQueue } = get();
+        const targetQueueSize = 5;
+        const needed = targetQueueSize - pairQueue.length;
+        
+        if (needed > 0) {
+          const newPairs = get().generateMultiplePairs(needed);
+          set({ pairQueue: [...pairQueue, ...newPairs] });
+        }
+      },
+
+      generatePair: async () => {
+        const { pairQueue, players } = get();
         
         if (players.length < 2) {
           await get().loadPlayersFromDB();
@@ -99,29 +159,32 @@ const useGameStore = create<GameState>()((set, get) => ({
           }
         }
 
-        const currentPlayers = get().players;
+        let pair: VotePair;
         
-        // Simple pair generation with some variety
-        let playerA: Player, playerB: Player;
-        let attempts = 0;
-        const maxAttempts = 20;
-
-        do {
-          const shuffled = [...currentPlayers].sort(() => Math.random() - 0.5);
-          playerA = shuffled[0];
-          playerB = shuffled[1];
-          attempts++;
-        } while (
-          attempts < maxAttempts && 
-          (playerA.id === playerB.id || 
-           recentVotes.includes(`${playerA.id}-${playerB.id}`) ||
-           recentVotes.includes(`${playerB.id}-${playerA.id}`))
-        );
-
-        const pairId = `${playerA.id}-${playerB.id}-${Date.now()}`;
-        const pair: VotePair = { pairId, playerA, playerB };
+        // Use from queue if available
+        if (pairQueue.length > 0) {
+          pair = pairQueue[0];
+          set({ 
+            currentPair: pair, 
+            pairQueue: pairQueue.slice(1) 
+          });
+          
+          // Refill queue in background
+          setTimeout(() => get().fillPairQueue(), 0);
+        } else {
+          // Fallback: generate single pair immediately
+          const newPairs = get().generateMultiplePairs(1);
+          if (newPairs.length > 0) {
+            pair = newPairs[0];
+            set({ currentPair: pair });
+            
+            // Fill queue for next time
+            setTimeout(() => get().fillPairQueue(), 0);
+          } else {
+            throw new Error('Could not generate pair');
+          }
+        }
         
-        set({ currentPair: pair });
         return pair;
       },
 

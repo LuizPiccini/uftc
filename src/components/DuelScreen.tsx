@@ -18,13 +18,14 @@ export const DuelScreen: React.FC<DuelScreenProps> = ({ onViewLeaderboard }) => 
     sessionVotes,
     hasVotedRecently,
     initializePlayers,
+    fillPairQueue,
     isLoading
   } = useGameStore();
   
   const [isVoting, setIsVoting] = useState(false);
   const [lastVoteResult, setLastVoteResult] = useState<{winnerId: string, winnerNewRank?: number, winnerOldRank?: number, loserNewRank?: number, loserOldRank?: number} | null>(null);
 
-  // Generate initial pair
+  // Generate initial pair and start background queue filling
   useEffect(() => {
     const init = async () => {
       await initializePlayers();
@@ -92,9 +93,13 @@ export const DuelScreen: React.FC<DuelScreenProps> = ({ onViewLeaderboard }) => 
         });
       }
 
-      // Wait for animation, then generate new pair
+      // Wait for animation, then get next pair from queue (instant)
       setTimeout(async () => {
-        await generatePair();
+        try {
+          await generatePair();
+        } catch (error) {
+          console.error('Failed to generate next pair:', error);
+        }
         setIsVoting(false);
         setLastVoteResult(null);
       }, 1500);
