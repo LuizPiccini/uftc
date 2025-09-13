@@ -139,7 +139,6 @@ export const DuelScreen: React.FC<DuelScreenProps> = ({ onViewLeaderboard }) => 
           {/* VS Header */}
           <div className="text-center mb-8">
             <h2 className="text-4xl font-bold mb-2">Quem ganharia em uma luta?</h2>
-            <p className="text-muted-foreground">Regras: sem armas, arena de UFC (Octógono) com teto de 3m de altura, até a morte, incapacitação ou desistência</p>
           </div>
 
           {/* Duel Cards - Mobile First Layout */}
@@ -168,6 +167,11 @@ export const DuelScreen: React.FC<DuelScreenProps> = ({ onViewLeaderboard }) => 
                 VS
               </div>
             </div>
+          </div>
+
+          {/* Rules */}
+          <div className="text-center mt-8">
+            <p className="text-muted-foreground">Regras: sem armas, arena de UFC (Octógono) com teto de 3m de altura, até a morte, incapacitação ou desistência</p>
           </div>
         </div>
       </main>
