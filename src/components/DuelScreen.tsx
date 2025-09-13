@@ -79,16 +79,36 @@ export const DuelScreen: React.FC<DuelScreenProps> = ({ onViewLeaderboard }) => 
         loserOldRank: result.loserOldRank,
       });
       
-      const rankChange = result.winnerOldRank && result.winnerNewRank 
-        ? result.winnerOldRank - result.winnerNewRank 
-        : 0;
+      // Get player names for the toast
+      const winnerName = currentPair.playerA.id === winnerId ? currentPair.playerA.name : currentPair.playerB.name;
+      const loserName = currentPair.playerA.id === winnerId ? currentPair.playerB.name : currentPair.playerA.name;
       
-      if (rankChange > 0) {
-        toast.success(`Moved up ${rankChange} position${rankChange > 1 ? 's' : ''}!`, {
-          duration: 2000,
+      // Create detailed ranking change message
+      let message = '';
+      
+      if (result.winnerOldRank && result.winnerNewRank) {
+        if (result.winnerNewRank < result.winnerOldRank) {
+          message += `${winnerName} subiu do ranking #${result.winnerOldRank} para #${result.winnerNewRank}`;
+        } else if (result.winnerNewRank === result.winnerOldRank) {
+          message += `${winnerName} manteve a posição #${result.winnerNewRank}`;
+        }
+      }
+      
+      if (result.loserOldRank && result.loserNewRank) {
+        if (message) message += '\n';
+        if (result.loserNewRank > result.loserOldRank) {
+          message += `${loserName} caiu do ranking #${result.loserOldRank} para #${result.loserNewRank}`;
+        } else if (result.loserNewRank === result.loserOldRank) {
+          message += `${loserName} manteve a posição #${result.loserNewRank}`;
+        }
+      }
+      
+      if (message) {
+        toast.success(message, {
+          duration: 3000,
         });
       } else if (result.winnerNewRank) {
-        toast.success(`Currently #${result.winnerNewRank}!`, {
+        toast.success(`${winnerName} está em #${result.winnerNewRank}!`, {
           duration: 2000,
         });
       }
