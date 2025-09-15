@@ -1,14 +1,24 @@
 import { supabase } from '@/integrations/supabase/client';
 
-const ASSET_PREFIX_REGEX = /^\.?\/?(?:public\/)?assets\//i;
+const ASSET_PREFIX_REGEX = /^\.?\/?((?:public\/)?assets\/)/i;
 
 const normalizeLocalAssetPath = (value: string): string | undefined => {
-  if (!ASSET_PREFIX_REGEX.test(value)) {
+  const match = value.match(ASSET_PREFIX_REGEX);
+  if (!match) {
     return undefined;
   }
 
-  const remainder = value.replace(ASSET_PREFIX_REGEX, '').replace(/^\/+/, '');
-  return remainder ? `/Assets/${remainder}` : '/Assets';
+  const remainder = value.slice(match[0].length).replace(/^\/+/, '');
+
+  let assetPrefix = match[1];
+  if (/^public\//i.test(assetPrefix)) {
+    assetPrefix = assetPrefix.slice(assetPrefix.indexOf('/') + 1);
+  }
+
+  assetPrefix = assetPrefix.replace(/\/+$/, '');
+
+  const normalizedPath = remainder ? `${assetPrefix}/${remainder}` : assetPrefix;
+  return `/${normalizedPath}`.replace(/\/+/g, '/');
 };
 
 export const resolveProfileImageUrl = (
