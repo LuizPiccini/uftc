@@ -178,6 +178,14 @@ export const DuelScreen: React.FC<DuelScreenProps> = ({ onViewLeaderboard }) => 
           {/* VS Header */}
           <div className="text-center mb-8">
             <h2 className="text-4xl font-bold mb-2">Quem ganharia em uma luta?</h2>
+            <Button 
+              variant="ghost" 
+              onClick={() => generatePair()}
+              disabled={isVoting || isLoading}
+              className="mt-2 text-muted-foreground hover:text-foreground"
+            >
+              Pular
+            </Button>
           </div>
 
           {/* Duel Cards - Mobile First Layout */}
