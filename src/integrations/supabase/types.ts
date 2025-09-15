@@ -100,7 +100,20 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      cast_vote_and_update_players: {
+        Args: {
+          p_loser_id: string
+          p_loser_new_rating: number
+          p_pair_id: string
+          p_winner_id: string
+          p_winner_new_rating: number
+        }
+        Returns: {
+          loser_old_rating: number
+          vote_id: string
+          winner_old_rating: number
+        }[]
+      }
     }
     Enums: {
       [_ in never]: never

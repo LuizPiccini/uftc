@@ -214,41 +214,16 @@ const useGameStore = create<GameState>()((set, get) => ({
           // Calculate Elo update
           const eloUpdate = calculateElo(winner, loser);
           
-          // Update winner in database
-          const { error: winnerError } = await supabase
-            .from('players')
-            .update({
-              rating: eloUpdate.winnerNewRating,
-              exposure_count: winner.exposureCount + 1,
-              win_count: winner.winCount + 1,
-            })
-            .eq('id', winnerId);
+          // Use the secure database function to cast vote and update players
+          const { data, error } = await supabase.rpc('cast_vote_and_update_players', {
+            p_winner_id: winnerId,
+            p_loser_id: loserId,
+            p_pair_id: currentPair.pairId,
+            p_winner_new_rating: eloUpdate.winnerNewRating,
+            p_loser_new_rating: eloUpdate.loserNewRating,
+          });
 
-          if (winnerError) throw winnerError;
-
-          // Update loser in database
-          const { error: loserError } = await supabase
-            .from('players')
-            .update({
-              rating: eloUpdate.loserNewRating,
-              exposure_count: loser.exposureCount + 1,
-              loss_count: loser.lossCount + 1,
-            })
-            .eq('id', loserId);
-
-          if (loserError) throw loserError;
-
-          // Save vote to database
-          const { error: voteError } = await supabase
-            .from('votes')
-            .insert({
-              pair_id: currentPair.pairId,
-              winner_id: winnerId,
-              loser_id: loserId,
-              timestamp: Date.now(),
-            });
-
-          if (voteError) throw voteError;
+          if (error) throw error;
 
           // Update local state
           const updatedPlayers = players.map(player => {
