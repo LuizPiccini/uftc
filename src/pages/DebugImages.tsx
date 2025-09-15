@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import { resolveProfileImageUrl } from '@/utils/profileImage';
 
 interface DebugPlayer {
   id: string;
@@ -23,21 +24,7 @@ const DebugImages = () => {
       }
       const mapped = (data || []).map((p) => {
         const rawUrl = p.profile_image_url?.trim() || null;
-        let publicUrl: string | undefined;
-        if (rawUrl) {
-          if (rawUrl.startsWith('http')) {
-            publicUrl = rawUrl;
-          } else if (rawUrl.startsWith('/')) {
-            publicUrl = rawUrl;
-          } else if (rawUrl.toLowerCase().startsWith('assets/')) {
-            publicUrl = `/${rawUrl}`;
-          } else {
-            const path = rawUrl.replace(/^players\//, '');
-            publicUrl = supabase.storage
-              .from('players')
-              .getPublicUrl(path).data.publicUrl;
-          }
-        }
+        const publicUrl = resolveProfileImageUrl(rawUrl);
         if (publicUrl) {
           fetch(publicUrl)
             .then((res) => {
