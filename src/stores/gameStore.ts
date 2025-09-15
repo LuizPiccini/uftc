@@ -44,16 +44,29 @@ const useGameStore = create<GameState>()((set, get) => ({
       
       if (error) throw error;
       
-      const formattedPlayers: Player[] = players?.map(p => ({
-        id: p.id,
-        name: p.name,
-        emoji: p.emoji,
-        profileImageUrl: p.profile_image_url,
-        rating: p.rating,
-        exposureCount: p.exposure_count,
-        winCount: p.win_count,
-        lossCount: p.loss_count,
-      })) || [];
+      const formattedPlayers: Player[] =
+        players?.map((p) => {
+          const rawUrl = p.profile_image_url?.trim();
+          let profileUrl: string | undefined;
+
+          if (rawUrl) {
+            profileUrl = rawUrl.startsWith('http')
+              ? rawUrl
+              : supabase.storage.from('players').getPublicUrl(rawUrl).data
+                  .publicUrl;
+          }
+
+          return {
+            id: p.id,
+            name: p.name,
+            emoji: p.emoji,
+            profileImageUrl: profileUrl,
+            rating: p.rating,
+            exposureCount: p.exposure_count,
+            winCount: p.win_count,
+            lossCount: p.loss_count,
+          };
+        }) || [];
       
       set({ players: formattedPlayers });
     } catch (error) {
