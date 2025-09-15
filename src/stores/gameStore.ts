@@ -4,6 +4,40 @@ import { calculateElo } from '@/utils/elo';
 import { supabase } from '@/integrations/supabase/client';
 import { resolveProfileImageUrl } from '@/utils/profileImage';
 
+const MAX_PAIR_GENERATION_ATTEMPTS = 50;
+
+const selectWeightedRandomPlayer = (
+  players: Player[],
+  excludedIds: Set<string> = new Set()
+): Player | null => {
+  const availablePlayers = players.filter((player) => !excludedIds.has(player.id));
+
+  if (availablePlayers.length === 0) {
+    return null;
+  }
+
+  const maxExposure = players.length
+    ? Math.max(...players.map((player) => player.exposureCount))
+    : 0;
+
+  const weights = availablePlayers.map((player) => {
+    const exposureOffset = maxExposure - player.exposureCount + 1;
+    return Math.max(exposureOffset, 1);
+  });
+
+  const totalWeight = weights.reduce((sum, weight) => sum + weight, 0);
+  let randomValue = Math.random() * totalWeight;
+
+  for (let index = 0; index < availablePlayers.length; index++) {
+    randomValue -= weights[index];
+    if (randomValue <= 0) {
+      return availablePlayers[index];
+    }
+  }
+
+  return availablePlayers[availablePlayers.length - 1];
+};
+
 interface GameState {
   players: Player[];
   votes: Vote[];
@@ -102,48 +136,58 @@ const useGameStore = create<GameState>()((set, get) => ({
     }
   },
 
-      generateMultiplePairs: (count: number) => {
-        const { players, recentVotes } = get();
-        
-        if (players.length < 2) {
-          return [];
+  generateMultiplePairs: (count: number) => {
+    const { players, recentVotes } = get();
+
+    if (players.length < 2) {
+      return [];
+    }
+
+    const pairs: VotePair[] = [];
+    const usedPairIds = new Set([...recentVotes]);
+
+    for (let index = 0; index < count; index++) {
+      let attempts = 0;
+      let pairGenerated = false;
+
+      while (attempts < MAX_PAIR_GENERATION_ATTEMPTS) {
+        attempts++;
+
+        const playerA = selectWeightedRandomPlayer(players);
+        if (!playerA) {
+          break;
         }
 
-        const pairs: VotePair[] = [];
-        const usedPairIds = new Set([...recentVotes]);
-        
-        for (let i = 0; i < count; i++) {
-          let playerA: Player, playerB: Player;
-          let attempts = 0;
-          const maxAttempts = 50;
-          let pairId: string;
-          let reversePairId: string;
-
-          do {
-            const shuffled = [...players].sort(() => Math.random() - 0.5);
-            playerA = shuffled[0];
-            playerB = shuffled[1];
-            pairId = `${playerA.id}-${playerB.id}`;
-            reversePairId = `${playerB.id}-${playerA.id}`;
-            attempts++;
-          } while (
-            attempts < maxAttempts && 
-            (playerA.id === playerB.id || 
-             usedPairIds.has(pairId) ||
-             usedPairIds.has(reversePairId))
-          );
-
-          if (attempts < maxAttempts) {
-            const fullPairId = `${pairId}-${Date.now()}-${i}`;
-            const pair: VotePair = { pairId: fullPairId, playerA, playerB };
-            pairs.push(pair);
-            usedPairIds.add(pairId);
-            usedPairIds.add(`${playerB.id}-${playerA.id}`);
-          }
+        const playerB = selectWeightedRandomPlayer(players, new Set([playerA.id]));
+        if (!playerB) {
+          break;
         }
-        
-        return pairs;
-      },
+
+        const pairId = `${playerA.id}-${playerB.id}`;
+        const reversePairId = `${playerB.id}-${playerA.id}`;
+
+        if (usedPairIds.has(pairId) || usedPairIds.has(reversePairId)) {
+          continue;
+        }
+
+        const fullPairId = `${pairId}-${Date.now()}-${index}`;
+        const pair: VotePair = { pairId: fullPairId, playerA, playerB };
+
+        pairs.push(pair);
+        usedPairIds.add(pairId);
+        usedPairIds.add(reversePairId);
+
+        pairGenerated = true;
+        break;
+      }
+
+      if (!pairGenerated) {
+        break;
+      }
+    }
+
+    return pairs;
+  },
 
       fillPairQueue: () => {
         const { pairQueue } = get();
