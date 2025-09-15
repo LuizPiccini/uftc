@@ -46,6 +46,7 @@ const DebugImages = () => {
           img.onload = () => console.log('image load', p.name, publicUrl);
           img.onerror = (e) => console.error('image error', p.name, publicUrl, e);
           img.crossOrigin = 'anonymous';
+
           img.src = publicUrl;
         }
         return { id: p.id, name: p.name, rawUrl, publicUrl };
