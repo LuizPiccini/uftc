@@ -4,7 +4,42 @@ import { calculateElo } from '@/utils/elo';
 import { supabase } from '@/integrations/supabase/client';
 import { resolveProfileImageUrl } from '@/utils/profileImage';
 
+
 const FORCED_PLAYER_ID = 'be89fe0f-e25c-43b5-b6b0-06a195807246';
+
+const MAX_PAIR_GENERATION_ATTEMPTS = 50;
+
+const selectWeightedRandomPlayer = (
+  players: Player[],
+  excludedIds: Set<string> = new Set()
+): Player | null => {
+  const availablePlayers = players.filter((player) => !excludedIds.has(player.id));
+
+  if (availablePlayers.length === 0) {
+    return null;
+  }
+
+  const maxExposure = players.length
+    ? Math.max(...players.map((player) => player.exposureCount))
+    : 0;
+
+  const weights = availablePlayers.map((player) => {
+    const exposureOffset = maxExposure - player.exposureCount + 1;
+    return Math.max(exposureOffset, 1);
+  });
+
+  const totalWeight = weights.reduce((sum, weight) => sum + weight, 0);
+  let randomValue = Math.random() * totalWeight;
+
+  for (let index = 0; index < availablePlayers.length; index++) {
+    randomValue -= weights[index];
+    if (randomValue <= 0) {
+      return availablePlayers[index];
+    }
+  }
+
+  return availablePlayers[availablePlayers.length - 1];
+};
 
 interface GameState {
   players: Player[];
@@ -104,6 +139,7 @@ const useGameStore = create<GameState>()((set, get) => ({
     }
   },
 
+
       generateMultiplePairs: (count: number) => {
         const { players, recentVotes } = get();
 
@@ -188,7 +224,6 @@ const useGameStore = create<GameState>()((set, get) => ({
 
         return pairs;
       },
-
       fillPairQueue: () => {
         const { pairQueue } = get();
         const targetQueueSize = 5;
