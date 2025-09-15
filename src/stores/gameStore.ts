@@ -52,6 +52,10 @@ const useGameStore = create<GameState>()((set, get) => ({
           if (rawUrl) {
             if (rawUrl.startsWith('http')) {
               profileUrl = rawUrl;
+            } else if (rawUrl.startsWith('/')) {
+              profileUrl = rawUrl;
+            } else if (rawUrl.toLowerCase().startsWith('assets/')) {
+              profileUrl = `/${rawUrl}`;
             } else {
               const path = rawUrl.replace(/^players\//, '');
               profileUrl = supabase.storage
