@@ -48,6 +48,7 @@ const useGameStore = create<GameState>()((set, get) => ({
         id: p.id,
         name: p.name,
         emoji: p.emoji,
+        profileImageUrl: p.profile_image_url,
         rating: p.rating,
         exposureCount: p.exposure_count,
         winCount: p.win_count,
