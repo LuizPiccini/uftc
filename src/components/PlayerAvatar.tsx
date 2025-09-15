@@ -38,6 +38,7 @@ export const PlayerAvatar: React.FC<PlayerAvatarProps> = ({
           key={profileImageUrl}
           src={profileImageUrl}
           alt={`${name} profile picture`}
+          crossOrigin="anonymous"
           onError={() => setImageError(true)}
         />
       )}

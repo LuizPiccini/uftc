@@ -45,6 +45,8 @@ const DebugImages = () => {
           const img = new Image();
           img.onload = () => console.log('image load', p.name, publicUrl);
           img.onerror = (e) => console.error('image error', p.name, publicUrl, e);
+          img.crossOrigin = 'anonymous';
+
           img.src = publicUrl;
         }
         return { id: p.id, name: p.name, rawUrl, publicUrl };
@@ -66,6 +68,7 @@ const DebugImages = () => {
             <img
               src={p.publicUrl}
               alt={p.name}
+              crossOrigin="anonymous"
               onLoad={() => console.log('render load', p.name, p.publicUrl)}
               onError={(e) => console.error('render error', p.name, p.publicUrl, e)}
               style={{ maxWidth: '150px', maxHeight: '150px' }}
