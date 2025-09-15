@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { VoteCard } from './VoteCard';
 import { RankingDisplay } from './RankingDisplay';
 import { Button } from '@/components/ui/button';
@@ -99,10 +99,15 @@ export const DuelScreen: React.FC<DuelScreenProps> = ({ onViewLeaderboard }) => 
   }, [currentPair, isVoting, isLoading, castVote, generatePair, hasVotedRecently]);
 
   // Generate initial pair and start background queue filling
+  const hasInitialized = useRef(false);
+
   useEffect(() => {
+    if (hasInitialized.current) return;
+    hasInitialized.current = true;
+
     const init = async () => {
       await initializePlayers();
-      if (!currentPair) {
+      if (!useGameStore.getState().currentPair) {
         try {
           await generatePair();
         } catch (error) {
@@ -110,8 +115,9 @@ export const DuelScreen: React.FC<DuelScreenProps> = ({ onViewLeaderboard }) => 
         }
       }
     };
+
     init();
-  }, [currentPair, generatePair, initializePlayers]);
+  }, [generatePair, initializePlayers]);
 
   // Handle keyboard shortcuts
   useEffect(() => {
