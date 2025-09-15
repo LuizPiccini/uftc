@@ -4,6 +4,8 @@ import { calculateElo } from '@/utils/elo';
 import { supabase } from '@/integrations/supabase/client';
 import { resolveProfileImageUrl } from '@/utils/profileImage';
 
+const FORCED_PLAYER_ID = 'be89fe0f-e25c-43b5-b6b0-06a195807246';
+
 interface GameState {
   players: Player[];
   votes: Vote[];
@@ -104,34 +106,76 @@ const useGameStore = create<GameState>()((set, get) => ({
 
       generateMultiplePairs: (count: number) => {
         const { players, recentVotes } = get();
-        
+
         if (players.length < 2) {
           return [];
         }
 
+        const forcedPlayer = players.find(player => player.id === FORCED_PLAYER_ID);
+        const availableOpponents = forcedPlayer
+          ? players.filter(player => player.id !== FORCED_PLAYER_ID)
+          : players;
+
+        if (forcedPlayer && availableOpponents.length === 0) {
+          return [];
+        }
+
+        const opponentsPool = forcedPlayer ? [...availableOpponents] : [];
         const pairs: VotePair[] = [];
         const usedPairIds = new Set([...recentVotes]);
-        
+
         for (let i = 0; i < count; i++) {
-          let playerA: Player, playerB: Player;
+          let playerA: Player | undefined;
+          let playerB: Player | undefined;
           let attempts = 0;
           const maxAttempts = 50;
-          let pairId: string;
-          let reversePairId: string;
+          let pairId = '';
+          let reversePairId = '';
 
           do {
-            const shuffled = [...players].sort(() => Math.random() - 0.5);
-            playerA = shuffled[0];
-            playerB = shuffled[1];
+            attempts++;
+
+            if (forcedPlayer) {
+              if (opponentsPool.length === 0) {
+                opponentsPool.push(...availableOpponents);
+              }
+
+              const opponentIndex = Math.floor(Math.random() * opponentsPool.length);
+              const [opponent] = opponentsPool.splice(opponentIndex, 1);
+
+              if (!opponent) {
+                break;
+              }
+
+              const forcedFirst = Math.random() < 0.5;
+              playerA = forcedFirst ? forcedPlayer : opponent;
+              playerB = forcedFirst ? opponent : forcedPlayer;
+            } else {
+              const shuffled = [...players].sort(() => Math.random() - 0.5);
+              playerA = shuffled[0];
+              playerB = shuffled[1];
+            }
+
+            if (!playerA || !playerB) {
+              continue;
+            }
+
             pairId = `${playerA.id}-${playerB.id}`;
             reversePairId = `${playerB.id}-${playerA.id}`;
-            attempts++;
           } while (
-            attempts < maxAttempts && 
-            (playerA.id === playerB.id || 
-             usedPairIds.has(pairId) ||
-             usedPairIds.has(reversePairId))
+            attempts < maxAttempts &&
+            (
+              !playerA ||
+              !playerB ||
+              playerA.id === playerB.id ||
+              usedPairIds.has(pairId) ||
+              usedPairIds.has(reversePairId)
+            )
           );
+
+          if (!playerA || !playerB) {
+            continue;
+          }
 
           if (attempts < maxAttempts) {
             const fullPairId = `${pairId}-${Date.now()}-${i}`;
@@ -141,7 +185,7 @@ const useGameStore = create<GameState>()((set, get) => ({
             usedPairIds.add(`${playerB.id}-${playerA.id}`);
           }
         }
-        
+
         return pairs;
       },
 
