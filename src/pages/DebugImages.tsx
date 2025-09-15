@@ -27,6 +27,10 @@ const DebugImages = () => {
         if (rawUrl) {
           if (rawUrl.startsWith('http')) {
             publicUrl = rawUrl;
+          } else if (rawUrl.startsWith('/')) {
+            publicUrl = rawUrl;
+          } else if (rawUrl.toLowerCase().startsWith('assets/')) {
+            publicUrl = `/${rawUrl}`;
           } else {
             const path = rawUrl.replace(/^players\//, '');
             publicUrl = supabase.storage
