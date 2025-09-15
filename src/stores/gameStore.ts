@@ -47,6 +47,7 @@ const useGameStore = create<GameState>()((set, get) => ({
       
       const formattedPlayers: Player[] =
         players?.map((p) => {
+
           const profileUrl = resolveProfileImageUrl(p.profile_image_url);
 
           return {
