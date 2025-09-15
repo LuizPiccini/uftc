@@ -2,6 +2,7 @@ import { create } from 'zustand';
 import { Player, Vote, VotePair, EloUpdate } from '@/types/goat';
 import { calculateElo } from '@/utils/elo';
 import { supabase } from '@/integrations/supabase/client';
+import { resolveProfileImageUrl } from '@/utils/profileImage';
 
 interface GameState {
   players: Player[];
@@ -46,19 +47,7 @@ const useGameStore = create<GameState>()((set, get) => ({
       
       const formattedPlayers: Player[] =
         players?.map((p) => {
-          const rawUrl = p.profile_image_url?.trim();
-          let profileUrl: string | undefined;
-
-          if (rawUrl) {
-            if (rawUrl.startsWith('http')) {
-              profileUrl = rawUrl;
-            } else {
-              const path = rawUrl.replace(/^players\//, '');
-              profileUrl = supabase.storage
-                .from('players')
-                .getPublicUrl(path).data.publicUrl;
-            }
-          }
+          const profileUrl = resolveProfileImageUrl(p.profile_image_url);
 
           return {
             id: p.id,
