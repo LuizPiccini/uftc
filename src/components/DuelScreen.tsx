@@ -11,10 +11,10 @@ interface DuelScreenProps {
 }
 
 export const DuelScreen: React.FC<DuelScreenProps> = ({ onViewLeaderboard }) => {
-  const { 
-    currentPair, 
-    generatePair, 
-    castVote, 
+  const {
+    currentPair,
+    generatePair,
+    castVote,
     sessionVotes,
     hasVotedRecently,
     initializePlayers,
@@ -24,37 +24,6 @@ export const DuelScreen: React.FC<DuelScreenProps> = ({ onViewLeaderboard }) => 
   
   const [isVoting, setIsVoting] = useState(false);
   const [lastVoteResult, setLastVoteResult] = useState<{winnerId: string, winnerNewRank?: number, winnerOldRank?: number, loserNewRank?: number, loserOldRank?: number} | null>(null);
-
-  // Generate initial pair and start background queue filling
-  useEffect(() => {
-    const init = async () => {
-      await initializePlayers();
-      if (!currentPair) {
-        try {
-          await generatePair();
-        } catch (error) {
-          console.error('Failed to generate pair:', error);
-        }
-      }
-    };
-    init();
-  }, []);
-
-  // Handle keyboard shortcuts
-  useEffect(() => {
-    const handleKeyPress = (e: KeyboardEvent) => {
-      if (isVoting || !currentPair) return;
-      
-      if (e.key === 'ArrowLeft') {
-        handleVote(currentPair.playerA.id, currentPair.playerB.id);
-      } else if (e.key === 'ArrowRight') {
-        handleVote(currentPair.playerB.id, currentPair.playerA.id);
-      }
-    };
-
-    window.addEventListener('keydown', handleKeyPress);
-    return () => window.removeEventListener('keydown', handleKeyPress);
-  }, [currentPair, isVoting]);
 
   const handleVote = useCallback(async (winnerId: string, loserId: string) => {
     if (isVoting || !currentPair || isLoading) return;
@@ -128,6 +97,37 @@ export const DuelScreen: React.FC<DuelScreenProps> = ({ onViewLeaderboard }) => 
       toast.error('Vote failed. Please try again.');
     }
   }, [currentPair, isVoting, isLoading, castVote, generatePair, hasVotedRecently]);
+
+  // Generate initial pair and start background queue filling
+  useEffect(() => {
+    const init = async () => {
+      await initializePlayers();
+      if (!currentPair) {
+        try {
+          await generatePair();
+        } catch (error) {
+          console.error('Failed to generate pair:', error);
+        }
+      }
+    };
+    init();
+  }, [currentPair, generatePair, initializePlayers]);
+
+  // Handle keyboard shortcuts
+  useEffect(() => {
+    const handleKeyPress = (e: KeyboardEvent) => {
+      if (isVoting || !currentPair) return;
+
+      if (e.key === 'ArrowLeft') {
+        handleVote(currentPair.playerA.id, currentPair.playerB.id);
+      } else if (e.key === 'ArrowRight') {
+        handleVote(currentPair.playerB.id, currentPair.playerA.id);
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyPress);
+    return () => window.removeEventListener('keydown', handleKeyPress);
+  }, [currentPair, isVoting, handleVote]);
 
   if (!currentPair || isLoading) {
     return (
