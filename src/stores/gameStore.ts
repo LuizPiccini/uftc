@@ -50,10 +50,14 @@ const useGameStore = create<GameState>()((set, get) => ({
           let profileUrl: string | undefined;
 
           if (rawUrl) {
-            profileUrl = rawUrl.startsWith('http')
-              ? rawUrl
-              : supabase.storage.from('players').getPublicUrl(rawUrl).data
-                  .publicUrl;
+            if (rawUrl.startsWith('http')) {
+              profileUrl = rawUrl;
+            } else {
+              const path = rawUrl.replace(/^players\//, '');
+              profileUrl = supabase.storage
+                .from('players')
+                .getPublicUrl(path).data.publicUrl;
+            }
           }
 
           return {
