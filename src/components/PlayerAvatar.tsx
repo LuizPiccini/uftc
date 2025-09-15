@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { cn } from '@/lib/utils';
 
@@ -26,12 +26,19 @@ export const PlayerAvatar: React.FC<PlayerAvatarProps> = ({
 }) => {
   const [imageError, setImageError] = useState(false);
 
+  // Reset error state when the image URL changes
+  useEffect(() => {
+    setImageError(false);
+  }, [profileImageUrl]);
+
   return (
     <Avatar className={cn(sizeClasses[size], className)}>
       {profileImageUrl && !imageError && (
         <AvatarImage
+          key={profileImageUrl}
           src={profileImageUrl}
           alt={`${name} profile picture`}
+          crossOrigin="anonymous"
           onError={() => setImageError(true)}
         />
       )}
