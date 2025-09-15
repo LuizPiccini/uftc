@@ -71,6 +71,7 @@ const useGameStore = create<GameState>()((set, get) => ({
             lossCount: p.loss_count,
           };
         }) || [];
+
       
       set({ players: formattedPlayers });
     } catch (error) {
