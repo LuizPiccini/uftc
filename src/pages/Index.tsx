@@ -7,12 +7,24 @@ type Screen = 'duel' | 'leaderboard';
 
 const Index = () => {
   const [currentScreen, setCurrentScreen] = useState<Screen>('duel');
-  const { initializePlayers } = useGameStore();
+  const { initializePlayers, recalculateAllRatings } = useGameStore();
 
   // Initialize players on first load
   useEffect(() => {
     initializePlayers();
-  }, [initializePlayers]);
+    
+    // Automatically recalculate all Elo ratings to fix historical data
+    const runRecalculation = async () => {
+      try {
+        const results = await recalculateAllRatings();
+        console.log('Elo ratings recalculated successfully:', results);
+      } catch (error) {
+        console.error('Failed to recalculate Elo ratings:', error);
+      }
+    };
+    
+    runRecalculation();
+  }, [initializePlayers, recalculateAllRatings]);
 
   return (
     <div className="min-h-screen">
