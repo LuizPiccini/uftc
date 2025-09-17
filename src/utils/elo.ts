@@ -4,9 +4,9 @@ const K_FACTOR = 24;
 const BASE_K = 16;
 
 export function calculateElo(winner: Player, loser: Player): EloUpdate {
-  // Calculate K-factor with decay based on exposure
-  const winnerK = Math.max(BASE_K, K_FACTOR - Math.floor(winner.exposureCount / 50));
-  const loserK = Math.max(BASE_K, K_FACTOR - Math.floor(loser.exposureCount / 50));
+  // Calculate K-factor with decay based on exposure - FIXED: use Math.min instead of Math.max
+  const winnerK = Math.min(K_FACTOR, Math.max(BASE_K, K_FACTOR - Math.floor(winner.exposureCount / 50)));
+  const loserK = Math.min(K_FACTOR, Math.max(BASE_K, K_FACTOR - Math.floor(loser.exposureCount / 50)));
 
   // Calculate expected scores
   const expectedWinner = 1 / (1 + Math.pow(10, (loser.rating - winner.rating) / 400));

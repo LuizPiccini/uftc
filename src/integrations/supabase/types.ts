@@ -114,6 +114,14 @@ export type Database = {
           winner_old_rating: number
         }[]
       }
+      recalculate_all_elo_ratings: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          new_rating: number
+          old_rating: number
+          player_id: string
+        }[]
+      }
     }
     Enums: {
       [_ in never]: never

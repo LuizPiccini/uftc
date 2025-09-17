@@ -3,6 +3,7 @@ import { Player, Vote, VotePair, EloUpdate } from '@/types/goat';
 import { calculateElo } from '@/utils/elo';
 import { supabase } from '@/integrations/supabase/client';
 import { resolveProfileImageUrl } from '@/utils/profileImage';
+import { recalculateAllEloRatings, type RecalculationResult } from './eloRecalculation';
 
 const MAX_PAIR_GENERATION_ATTEMPTS = 50;
 
@@ -58,6 +59,7 @@ interface GameState {
   hasVotedRecently: (pairId: string) => boolean;
   loadPlayersFromDB: () => Promise<void>;
   loadVotesFromDB: () => Promise<void>;
+  recalculateAllRatings: () => Promise<RecalculationResult[]>;
 }
 
 const useGameStore = create<GameState>()((set, get) => ({
@@ -346,6 +348,13 @@ const useGameStore = create<GameState>()((set, get) => ({
       hasVotedRecently: (pairId: string) => {
         const { recentVotes } = get();
         return recentVotes.includes(pairId);
+      },
+
+      recalculateAllRatings: async () => {
+        const results = await recalculateAllEloRatings();
+        // Reload players from database to get updated ratings
+        await get().loadPlayersFromDB();
+        return results;
       },
     }));
 
