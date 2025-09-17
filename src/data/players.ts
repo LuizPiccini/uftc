@@ -1,6 +1,6 @@
 import { Player } from "@/types/goat";
 
-export const initialPlayers: Omit<Player, "id">[] = [
+export const initialPlayers: Omit<Player, "id" | "ratingDeviation" | "volatility">[] = [
   { name: "Lionel Messi", emoji: "🐐", rating: 1500, exposureCount: 0, winCount: 0, lossCount: 0 },
   { name: "Cristiano Ronaldo", emoji: "👑", rating: 1500, exposureCount: 0, winCount: 0, lossCount: 0 },
   { name: "Pelé", emoji: "🏆", rating: 1500, exposureCount: 0, winCount: 0, lossCount: 0 },

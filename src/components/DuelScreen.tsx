@@ -256,7 +256,7 @@ export const DuelScreen: React.FC<DuelScreenProps> = ({ onViewLeaderboard }) => 
       {/* Footer */}
       <footer className="p-4 text-center border-t border-border/50 backdrop-blur-sm bg-background/80">
         <p className="text-xs text-muted-foreground">
-          Rankings update with every vote using Elo rating system
+          Rankings update with every vote using the Glicko-2 rating system
         </p>
       </footer>
     </div>
