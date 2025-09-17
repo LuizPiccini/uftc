@@ -1,9 +1,8 @@
 import { create } from 'zustand';
-import { Player, Vote, VotePair, EloUpdate } from '@/types/goat';
-import { calculateElo } from '@/utils/elo';
+import { Player, Vote, VotePair, RatingUpdate } from '@/types/goat';
 import { supabase } from '@/integrations/supabase/client';
 import { resolveProfileImageUrl } from '@/utils/profileImage';
-import { recalculateAllEloRatings, type RecalculationResult } from './eloRecalculation';
+import { recalculateAllGlickoRatings, type RecalculationResult } from './glickoRecalculation';
 
 const MAX_PAIR_GENERATION_ATTEMPTS = 50;
 
@@ -54,7 +53,7 @@ interface GameState {
   generatePair: () => Promise<VotePair>;
   generateMultiplePairs: (count: number) => VotePair[];
   fillPairQueue: () => void;
-  castVote: (winnerId: string, loserId: string) => Promise<EloUpdate | null>;
+  castVote: (winnerId: string, loserId: string) => Promise<RatingUpdate | null>;
   getLeaderboard: () => Player[];
   hasVotedRecently: (pairId: string) => boolean;
   loadPlayersFromDB: () => Promise<void>;
@@ -92,6 +91,8 @@ const useGameStore = create<GameState>()((set, get) => ({
             emoji: p.emoji,
             profileImageUrl: profileUrl,
             rating: p.rating,
+            ratingDeviation: p.rating_deviation,
+            volatility: p.volatility,
             exposureCount: p.exposure_count,
             winCount: p.win_count,
             lossCount: p.loss_count,
@@ -244,47 +245,48 @@ const useGameStore = create<GameState>()((set, get) => ({
 
       castVote: async (winnerId: string, loserId: string) => {
         const { players, currentPair, votes, recentVotes } = get();
-        
+
         if (!currentPair) return null;
-        
-        // Check for duplicate vote
+
         if (recentVotes.includes(currentPair.pairId)) {
           return null;
         }
 
-        const winner = players.find(p => p.id === winnerId);
-        const loser = players.find(p => p.id === loserId);
-        
+        const winner = players.find((p) => p.id === winnerId);
+        const loser = players.find((p) => p.id === loserId);
+
         if (!winner || !loser) return null;
 
         try {
           set({ isLoading: true });
 
-          // Get current rankings before update
           const currentLeaderboard = get().getLeaderboard();
-          const winnerOldRank = currentLeaderboard.findIndex(p => p.id === winnerId) + 1;
-          const loserOldRank = currentLeaderboard.findIndex(p => p.id === loserId) + 1;
+          const winnerOldRank = currentLeaderboard.findIndex((p) => p.id === winnerId) + 1;
+          const loserOldRank = currentLeaderboard.findIndex((p) => p.id === loserId) + 1;
 
-          // Calculate Elo update
-          const eloUpdate = calculateElo(winner, loser);
-          
-          // Use the secure database function to cast vote and update players
           const { data, error } = await supabase.rpc('cast_vote_and_update_players', {
             p_winner_id: winnerId,
             p_loser_id: loserId,
             p_pair_id: currentPair.pairId,
-            p_winner_new_rating: eloUpdate.winnerNewRating,
-            p_loser_new_rating: eloUpdate.loserNewRating,
           });
 
           if (error) throw error;
 
-          // Update local state
-          const updatedPlayers = players.map(player => {
+          const update = data?.[0];
+          if (!update) {
+            throw new Error('No rating update returned');
+          }
+
+          const winnerRatingChange = update.winner_new_rating - update.winner_old_rating;
+          const loserRatingChange = update.loser_new_rating - update.loser_old_rating;
+
+          const updatedPlayers = players.map((player) => {
             if (player.id === winnerId) {
               return {
                 ...player,
-                rating: eloUpdate.winnerNewRating,
+                rating: update.winner_new_rating,
+                ratingDeviation: update.winner_new_rating_deviation,
+                volatility: update.winner_new_volatility,
                 exposureCount: player.exposureCount + 1,
                 winCount: player.winCount + 1,
               };
@@ -292,7 +294,9 @@ const useGameStore = create<GameState>()((set, get) => ({
             if (player.id === loserId) {
               return {
                 ...player,
-                rating: eloUpdate.loserNewRating,
+                rating: update.loser_new_rating,
+                ratingDeviation: update.loser_new_rating_deviation,
+                volatility: update.loser_new_volatility,
                 exposureCount: player.exposureCount + 1,
                 lossCount: player.lossCount + 1,
               };
@@ -319,18 +323,28 @@ const useGameStore = create<GameState>()((set, get) => ({
             isLoading: false,
           });
 
-          // Get new rankings after update
           const newLeaderboard = get().getLeaderboard();
-          const winnerNewRank = newLeaderboard.findIndex(p => p.id === winnerId) + 1;
-          const loserNewRank = newLeaderboard.findIndex(p => p.id === loserId) + 1;
+          const winnerNewRank = newLeaderboard.findIndex((p) => p.id === winnerId) + 1;
+          const loserNewRank = newLeaderboard.findIndex((p) => p.id === loserId) + 1;
 
-          return {
-            ...eloUpdate,
+          const result: RatingUpdate = {
+            winnerId,
+            loserId,
+            winnerNewRating: update.winner_new_rating,
+            loserNewRating: update.loser_new_rating,
+            winnerRatingChange,
+            loserRatingChange,
+            winnerNewRatingDeviation: update.winner_new_rating_deviation,
+            loserNewRatingDeviation: update.loser_new_rating_deviation,
+            winnerNewVolatility: update.winner_new_volatility,
+            loserNewVolatility: update.loser_new_volatility,
             winnerOldRank,
             winnerNewRank,
             loserOldRank,
             loserNewRank,
           };
+
+          return result;
         } catch (error) {
           console.error('Error casting vote:', error);
           set({ isLoading: false });
@@ -351,7 +365,7 @@ const useGameStore = create<GameState>()((set, get) => ({
       },
 
       recalculateAllRatings: async () => {
-        const results = await recalculateAllEloRatings();
+        const results = await recalculateAllGlickoRatings();
         // Reload players from database to get updated ratings
         await get().loadPlayersFromDB();
         return results;

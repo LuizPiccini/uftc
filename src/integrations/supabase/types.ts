@@ -24,7 +24,9 @@ export type Database = {
           name: string
           profile_image_url: string | null
           rating: number
+          rating_deviation: number
           updated_at: string
+          volatility: number
           win_count: number
         }
         Insert: {
@@ -36,7 +38,9 @@ export type Database = {
           name: string
           profile_image_url?: string | null
           rating?: number
+          rating_deviation?: number
           updated_at?: string
+          volatility?: number
           win_count?: number
         }
         Update: {
@@ -48,7 +52,9 @@ export type Database = {
           name?: string
           profile_image_url?: string | null
           rating?: number
+          rating_deviation?: number
           updated_at?: string
+          volatility?: number
           win_count?: number
         }
         Relationships: []
@@ -103,21 +109,52 @@ export type Database = {
       cast_vote_and_update_players: {
         Args: {
           p_loser_id: string
-          p_loser_new_rating: number
           p_pair_id: string
           p_winner_id: string
-          p_winner_new_rating: number
         }
         Returns: {
+          loser_new_rating: number
+          loser_new_rating_deviation: number
+          loser_new_volatility: number
           loser_old_rating: number
           vote_id: string
+          winner_new_rating: number
+          winner_new_rating_deviation: number
+          winner_new_volatility: number
           winner_old_rating: number
+        }[]
+      }
+      glicko2_update: {
+        Args: {
+          p_opponent_rating: number
+          p_opponent_rating_deviation: number
+          p_rating: number
+          p_rating_deviation: number
+          p_score: number
+          p_volatility: number
+        }
+        Returns: {
+          new_rating: number
+          new_rating_deviation: number
+          new_volatility: number
+        }[]
+      }
+      recalculate_all_glicko2_ratings: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          new_rating: number
+          new_rating_deviation: number
+          new_volatility: number
+          old_rating: number
+          player_id: string
         }[]
       }
       recalculate_all_elo_ratings: {
         Args: Record<PropertyKey, never>
         Returns: {
           new_rating: number
+          new_rating_deviation: number
+          new_volatility: number
           old_rating: number
           player_id: string
         }[]

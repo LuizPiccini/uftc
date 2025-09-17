@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/button';
 import { PlayerAvatar } from '@/components/PlayerAvatar';
 import { useGameStore } from '@/stores/gameStore';
 import { ArrowLeft, Trophy, TrendingUp } from 'lucide-react';
-import { getRatingColor, getRankEmoji } from '@/utils/elo';
+import { getRatingColor, getRankEmoji } from '@/utils/rating';
 import { cn } from '@/lib/utils';
 
 interface LeaderboardScreenProps {
@@ -42,7 +42,7 @@ export const LeaderboardScreen: React.FC<LeaderboardScreenProps> = ({ onBackToDu
               Ranking UFTC
             </h1>
             <p className="text-sm text-muted-foreground">
-              {totalVotes} total votes • Live Elo ratings
+              {totalVotes} total votes • Live Glicko-2 ratings
             </p>
           </div>
           

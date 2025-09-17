@@ -13,13 +13,13 @@ const Index = () => {
   useEffect(() => {
     initializePlayers();
     
-    // Automatically recalculate all Elo ratings to fix historical data
+    // Automatically recalculate all Glicko-2 ratings to fix historical data
     const runRecalculation = async () => {
       try {
         const results = await recalculateAllRatings();
-        console.log('Elo ratings recalculated successfully:', results);
+        console.log('Glicko-2 ratings recalculated successfully:', results);
       } catch (error) {
-        console.error('Failed to recalculate Elo ratings:', error);
+        console.error('Failed to recalculate Glicko-2 ratings:', error);
       }
     };
     
