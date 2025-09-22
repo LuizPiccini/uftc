@@ -107,19 +107,37 @@ const useGameStore = create<GameState>()((set, get) => ({
 
   loadVotesFromDB: async () => {
     try {
-      const { data: votes, error } = await supabase
-        .from('votes')
-        .select('*')
-        .order('created_at', { ascending: false });
+      // Get all votes without pagination limits
+      let allVotes: any[] = [];
+      let from = 0;
+      const limit = 1000;
       
-      if (error) throw error;
+      while (true) {
+        const { data: votes, error } = await supabase
+          .from('votes')
+          .select('*')
+          .order('created_at', { ascending: false })
+          .range(from, from + limit - 1);
+        
+        if (error) throw error;
+        
+        if (!votes || votes.length === 0) break;
+        
+        allVotes = [...allVotes, ...votes];
+        
+        if (votes.length < limit) break;
+        
+        from += limit;
+      }
       
-      const formattedVotes: Vote[] = votes?.map(v => ({
+      const formattedVotes: Vote[] = allVotes.map(v => ({
         pairId: v.pair_id,
         winnerId: v.winner_id,
         loserId: v.loser_id,
         timestamp: v.timestamp,
-      })) || [];
+      }));
+      
+      console.log(`Loaded ${formattedVotes.length} total votes from database`);
       
       set({ 
         votes: formattedVotes,
